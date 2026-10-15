@@ -218,7 +218,7 @@ a stable total order within a chat.
 | `GET /v1/account` | → Account | |
 | `GET /v1/chats` | → `{chats, next_cursor}` | ordered by `last_message_at` desc. `?limit=` (default 50, max 500), `?cursor=`, `?archived=include\|exclude\|only` (default exclude) |
 | `GET /v1/chats/{id}` | → Chat + participants + capabilities | |
-| `GET /v1/chats/{id}/messages` | → `{messages, before_cursor, after_cursor}` | `messages` oldest first. With no cursor, the newest page. `?before=` / `?after=` page from a cursor; `?around=<message_id>` centres a page on a message (for search hits and reply jumps). A cursor is null when nothing more is stored. |
+| `GET /v1/chats/{id}/messages` | → `{messages, before_cursor, after_cursor, has_more_before, has_more_after}` | `messages` oldest first. With no cursor, the newest page. `?before=` / `?after=` page from a cursor; `?around=<message_id>` centres a page on a message (for search hits and reply jumps). `?limit=` default 50, max 500. The cursors are the positions of the first and last message (null only for an empty page), so `after=<after_cursor>` later fetches what's arrived since. |
 | `GET /v1/messages/{id}` | → Message | |
 | `GET /v1/messages` | → `{messages, next_cursor}` | across all chats, newest first. `?since=` / `?until=` timestamps, `?limit=`, `?cursor=`. For "what came in today". |
 | `GET /v1/search` | → `{hits: [{message, chat_title, snippet}]}` | `?q=` (word prefixes), optional `?chat_id=`, `?limit=` (max 100). `snippet` marks matches as `[match]`. |

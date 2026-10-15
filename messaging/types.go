@@ -220,12 +220,15 @@ type ChatPage struct {
 	NextCursor *string `json:"next_cursor"`
 }
 
-// MessagePage is oldest first. A nil cursor means nothing more is stored in
-// that direction.
+// MessagePage is oldest first. The cursors are the positions of the first and
+// last message (nil only for an empty page): page back with Before, or fetch
+// what's arrived since with After.
 type MessagePage struct {
-	Messages     []Message `json:"messages"`
-	BeforeCursor *string   `json:"before_cursor"`
-	AfterCursor  *string   `json:"after_cursor"`
+	Messages      []Message `json:"messages"`
+	BeforeCursor  *string   `json:"before_cursor"`
+	AfterCursor   *string   `json:"after_cursor"`
+	HasMoreBefore bool      `json:"has_more_before"`
+	HasMoreAfter  bool      `json:"has_more_after"`
 }
 
 // RecentMessages is newest first, across chats.

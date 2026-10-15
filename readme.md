@@ -12,7 +12,10 @@ consumers query it live.
   wire types, a consumer client with provider fan-out, and `RequireGrants`
   middleware for providers.
 
-Status: **draft 0.1**, not implemented by any provider yet.
+Status: **0.1.0**.
+- **Providers:** bottled-whatsapp, bottled-fb-messenger and bottled-instagram, all through
+  [bottled-bridge-core](https://github.com/cloud-in-a-bottle/bottled-bridge-core) (`web/messaging*.go`).
+- **Consumer:** messaging-inbox.
 
 ## Design notes
 
@@ -77,23 +80,19 @@ addresses for a contact, add an address) would let the inbox show contact
 names and photos and offer "message on WhatsApp / Signal" from a person,
 without merging any chats.
 
-## Plan
+## Decided, for now
 
-1. **Agree this spec.**
-2. **bridge-core provider.** A `service` package serving `/messaging/v1/...`
-   from the existing store behind `messaging.RequireGrants`, mapping
-   `room_features` to capabilities. The three apps then each add a
-   `[[services.v2.provides]]` block. Along the way: fix the `sent_at`-only
-   cursor, and have the app's own UI read capabilities instead of hard-coding
-   one reaction per person and unlimited edit/unsend.
-3. **Inbox meta-app (Go).** Uses the client here for fan-out and serves its
-   own UI. The message-rendering code in bridge-core's `web/static/app.js`
-   (`renderMessage`, attachments, reactions, menus) gets pulled into a module
-   that takes an API base and capabilities, so both the per-network apps and
-   the inbox use it. The browser talks to the inbox's Go server, which proxies
-   to providers, so the app token stays server-side.
-4. **Signal.** Free once it's on bridge-core; otherwise its own provider.
-5. **Contacts service** for identity linking.
-6. **RCS.** open-rcs-client is a standalone Android app today, so it needs a
-   server-side component that provides this service. The spec already allows
-   for it: `tel:` addresses, no edits, delivery/read receipts via IMDN.
+- **No change feed.** Consumers query live, and follow `/v1/events` while they need to stay current. There's no
+  durable "everything since X" log.
+- **Permissions are just `read` and `write`, both global.** Per-chat (app-scoped) grants can come later, eg for a bot
+  that should see one group.
+- **Plain text only.** Formatting and mentions come later (Signal stores them as ranges, the bridge-core apps as HTML).
+- **No chat-list actions** (pin, archive, mute) yet.
+- **Logging in and setup stay in each provider's own UI.**
+
+## Next
+
+- **Signal:** once it's on bridge-core it provides this for free; until then, its own provider.
+- **Contacts service:** for linking identities across networks (see above).
+- **RCS:** needs a server-side component that provides this service; the open-rcs-client app is Android-only.
+- **An OpenAPI version of `spec.md`**, for consumers in other languages.

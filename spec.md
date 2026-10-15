@@ -13,7 +13,8 @@ and threads are out of scope and would need a different service.
 
 All paths below are relative to the provider's `endpoint`, e.g.
 `[[services.v2.provides]] endpoint = "/messaging/"`. Consumers call
-`$OPENHOST_ROUTER_URL/api/services/v2/call/<shortname>/v1/...`.
+`$BOTTLE_ROUTER_URL/api/services/v2/call/<shortname>/v1/...` with
+`Authorization: Bearer $BOTTLE_APP_TOKEN`.
 
 ## Conventions
 
@@ -315,7 +316,8 @@ endpoint = "/messaging/"
 ## Many providers
 
 Every messaging app provides this service, so a consumer that wants everything
-lists providers (`GET /api/services/v2/providers?service=<url>`) and calls each
-with `X-OpenHost-Provider: <app_id>`. Because chats are ordered by
+lists providers (`GET $BOTTLE_ROUTER_URL/api/services/v2/providers?service=<url>`,
+which returns an array of `{app_id, app_name, status, ...}`) and calls each
+running one with `X-OpenHost-Provider: <app_id>`. Because chats are ordered by
 `last_message_at`, a unified chat list is a merge of each provider's first page;
 fetch more from whichever provider's page runs out first.

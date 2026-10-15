@@ -1,0 +1,3 @@
+[service]
+name = "messaging"
+description = "Read and send messages through a messaging app (Signal, WhatsApp, Messenger, Instagram, RCS): one account per provider"

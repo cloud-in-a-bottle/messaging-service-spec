@@ -5,6 +5,7 @@ import (
 	"cmp"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -27,34 +28,39 @@ type Client struct {
 	HTTP      *http.Client
 }
 
-// NewClient reads OPENHOST_ROUTER_URL and OPENHOST_APP_TOKEN, which openhost
-// sets in every app container.
-func NewClient() *Client {
+// NewClient reads BOTTLE_ROUTER_URL and BOTTLE_APP_TOKEN, which Cloud in a
+// Bottle sets in every app container, and fails if they're missing.
+func NewClient() (*Client, error) {
+	routerURL, token := os.Getenv("BOTTLE_ROUTER_URL"), os.Getenv("BOTTLE_APP_TOKEN")
+	if routerURL == "" || token == "" {
+		return nil, errors.New("BOTTLE_ROUTER_URL and BOTTLE_APP_TOKEN must be set")
+	}
 	return &Client{
-		RouterURL: strings.TrimRight(os.Getenv("OPENHOST_ROUTER_URL"), "/"),
-		AppToken:  os.Getenv("OPENHOST_APP_TOKEN"),
+		RouterURL: strings.TrimRight(routerURL, "/"),
+		AppToken:  token,
 		Shortname: "messaging",
 		HTTP:      &http.Client{Timeout: 30 * time.Second},
-	}
+	}, nil
 }
 
 // ProviderInfo is one entry of the router's provider listing.
 type ProviderInfo struct {
+	ServiceURL     string `json:"service_url"`
 	AppID          string `json:"app_id"`
 	AppName        string `json:"app_name"`
-	Status         string `json:"status"`
-	IsDefault      bool   `json:"is_default"`
 	ServiceVersion string `json:"service_version"`
+	Endpoint       string `json:"endpoint"`
+	// "running" when the app is up.
+	Status    string `json:"status"`
+	IsDefault bool   `json:"is_default"`
 }
 
 // Providers lists every app providing the messaging service.
 func (c *Client) Providers(ctx context.Context) ([]ProviderInfo, error) {
-	var out struct {
-		Providers []ProviderInfo `json:"providers"`
-	}
+	var out []ProviderInfo
 	u := c.RouterURL + "/api/services/v2/providers?service=" + url.QueryEscape(ServiceURL)
 	err := c.do(ctx, http.MethodGet, u, "", nil, "", &out)
-	return out.Providers, err
+	return out, err
 }
 
 // Provider returns a client bound to one provider app.

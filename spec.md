@@ -53,8 +53,8 @@ someone on a network.
 | Instagram | `instagram` | Instagram user ID | `instagram:1784…` |
 | RCS / SMS | `tel` | E.164 | `tel:+15551234567` |
 
-Groups also get an address (`signal-group:<id>`, `whatsapp:<id>@g.us`, …),
-but nothing outside the provider is expected to use it.
+Only people have addresses; chats are addressed by their `id`. Someone a
+provider knows only by name (eg from an imported export) has a null address.
 
 Where the network tells us a phone number (Signal, WhatsApp), the person also
 gets a `phone` (E.164) as a hint for contact matching. The address is the
@@ -70,12 +70,14 @@ identity; the phone number is not.
   "state": "connected",            // connected | connecting | logged_out | error
   "state_detail": null,
   "syncing": false,                // initial history still arriving
-  "capabilities": {Capabilities},  // defaults for this account's chats
-  "ui_url": "https://whatsapp.example.bottle/"  // the provider's own UI, for setup / login
+  "capabilities": {Capabilities}   // defaults for this account's chats
 }
 ```
 
 `network` is a lowercase slug: `signal`, `whatsapp`, `messenger`, `instagram`, `rcs`.
+
+Logging in and setup happen in the provider's own UI, at
+`https://<app_name>.<zone domain>/`; this API has no login calls.
 
 ### Capabilities
 
@@ -100,14 +102,16 @@ community chats disallow typing, Instagram drops captions). A missing key or
     "caption": true,
     "max_per_message": 1          // more files are sent as separate messages
   },
-  "read_receipts": true,          // we can send them, and outgoing messages reach status "read"
+  "read_receipts": true,          // marking read tells the other side, and outgoing messages reach "read"
   "delivery_receipts": true,      // outgoing messages reach status "delivered"
   "typing": true,
-  "mentions": false,
-  "disappearing": true,
+  "load_older": true,             // POST /v1/chats/{id}/history can fetch older messages from the network
   "start_chat": ["address", "phone"]   // what POST /v1/chats accepts
 }
 ```
+
+`attachments.kinds` lists what can be *sent* through this API; any kind may be
+received.
 
 For the mautrix-based providers this is a projection of `com.beeper.room_features`
 (`event.RoomFeatures`), which bridge-core already stores in `room_state`.
@@ -116,8 +120,8 @@ For the mautrix-based providers this is a projection of `com.beeper.room_feature
 
 ```json
 {
-  "id": "p_42",
-  "address": "whatsapp:15551234567",
+  "id": "p_42",                    // "" for someone found on the network the provider has no record of yet
+  "address": "whatsapp:15551234567",  // null for someone not on the network
   "name": "Ada Lovelace",          // best name the network gives; may be null
   "phone": "+15551234567",         // optional hint
   "avatar_url": "v1/avatars/ab12…",// relative to the service base; null if none
@@ -257,6 +261,7 @@ All writes need the `write` grant. The account must be `connected` (else 503).
 | `DELETE /v1/messages/{id}/reactions/{emoji}` | | `204` (removes your reaction) |
 | `POST /v1/chats/{id}/read` | `{"up_to": "<message id>"}` (optional; default latest) | `204` |
 | `POST /v1/chats/{id}/typing` | `{"typing": true}` | `204` |
+| `POST /v1/chats/{id}/history` | | `202`: fetch a page of older messages from the network (`load_older`); a `chat` event follows |
 
 Sending:
 - A send returns as soon as the provider has stored it. Messages come back as

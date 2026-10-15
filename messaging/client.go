@@ -274,6 +274,12 @@ func (p *Provider) MarkRead(ctx context.Context, chatID, upTo string) error {
 	return p.sendJSON(ctx, http.MethodPost, "v1/chats/"+url.PathEscape(chatID)+"/read", body, nil)
 }
 
+// LoadOlder asks the provider to fetch a page of older messages from the network (capability load_older). A chat
+// event follows when they're stored.
+func (p *Provider) LoadOlder(ctx context.Context, chatID string) error {
+	return p.sendJSON(ctx, http.MethodPost, "v1/chats/"+url.PathEscape(chatID)+"/history", nil, nil)
+}
+
 func (p *Provider) Typing(ctx context.Context, chatID string, typing bool) error {
 	return p.sendJSON(ctx, http.MethodPost, "v1/chats/"+url.PathEscape(chatID)+"/typing", map[string]bool{"typing": typing}, nil)
 }

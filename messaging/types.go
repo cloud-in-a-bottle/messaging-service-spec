@@ -35,8 +35,6 @@ type Account struct {
 	StateDetail  *string      `json:"state_detail"`
 	Syncing      bool         `json:"syncing"`
 	Capabilities Capabilities `json:"capabilities"`
-	// The provider's own UI, where login and setup happen.
-	UIURL string `json:"ui_url"`
 }
 
 // Capabilities says what a consumer may do in a chat. A nil pointer or false
@@ -51,8 +49,7 @@ type Capabilities struct {
 	ReadReceipts     bool                  `json:"read_receipts,omitempty"`
 	DeliveryReceipts bool                  `json:"delivery_receipts,omitempty"`
 	Typing           bool                  `json:"typing,omitempty"`
-	Mentions         bool                  `json:"mentions,omitempty"`
-	Disappearing     bool                  `json:"disappearing,omitempty"`
+	LoadOlder        bool                  `json:"load_older,omitempty"`
 	StartChat        []string              `json:"start_chat,omitempty"` // "address", "phone"
 }
 
@@ -91,9 +88,11 @@ type AttachmentCapability struct {
 }
 
 type Person struct {
+	// "" for someone found on the network that the provider has no record of yet.
 	ID string `json:"id"`
-	// Network identity as a URI, e.g. "signal:<aci>", "tel:+15551234567".
-	Address   string  `json:"address"`
+	// Network identity as a URI, e.g. "signal:<aci>", "tel:+15551234567". Nil for someone not on the network (eg
+	// known only by name from an imported export).
+	Address   *string `json:"address"`
 	Name      *string `json:"name"`
 	Phone     *string `json:"phone,omitempty"` // E.164 hint for contact matching
 	AvatarURL *string `json:"avatar_url"`

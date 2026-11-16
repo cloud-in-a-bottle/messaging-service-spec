@@ -317,7 +317,7 @@ endpoint = "/messaging/"
 
 Every messaging app provides this service, so a consumer that wants everything
 lists providers (`GET $BOTTLE_ROUTER_URL/api/services/v2/providers?service=<url>`,
-which returns an array of `{app_id, app_name, status, ...}`) and calls each
+which returns `{"providers": [{app_id, app_name, status, ...}]}`) and calls each
 running one with `X-OpenHost-Provider: <app_id>`. Because chats are ordered by
 `last_message_at`, a unified chat list is a merge of each provider's first page;
 fetch more from whichever provider's page runs out first.

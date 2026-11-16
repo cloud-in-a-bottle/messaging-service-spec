@@ -57,10 +57,12 @@ type ProviderInfo struct {
 
 // Providers lists every app providing the messaging service.
 func (c *Client) Providers(ctx context.Context) ([]ProviderInfo, error) {
-	var out []ProviderInfo
+	var out struct {
+		Providers []ProviderInfo `json:"providers"`
+	}
 	u := c.RouterURL + "/api/services/v2/providers?service=" + url.QueryEscape(ServiceURL)
 	err := c.do(ctx, http.MethodGet, u, "", nil, "", &out)
-	return out, err
+	return out.Providers, err
 }
 
 // Provider returns a client bound to one provider app.

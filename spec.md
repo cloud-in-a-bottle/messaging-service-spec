@@ -192,6 +192,15 @@ changed, a call. `event` is `{"type": "<slug>", "text": "<human text>"}`. Consum
 render `text`; `type` is a convention, not an enum (`member_joined`,
 `member_left`, `title_changed`, `timer_changed`, `call`, …).
 
+`text`, `caption` and `reply_to.text` are plain text, never Markdown or HTML.
+Providers write a network's formatting out the way people type it, so nothing
+meaningful is silently dropped: `*bold*`, `_italic_`, `~strike~`, `` `code` ``,
+`@Name` for a mention, `||spoiler||`, and a fenced block for code. A link is
+written as its URL, or as `label (url)` when its label isn't a URL. Something
+that can't be written meaningfully as text is replaced by a short note saying
+what it was. Consumers don't parse any of this; they show the text as it is and
+make URLs in it clickable.
+
 Messages with one sender timestamp sort by `(sent_at, id)`; providers must give
 a stable total order within a chat.
 
